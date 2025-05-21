@@ -20,4 +20,5 @@ RUN pip install -r requirements.txt
 EXPOSE 8080
 
 # Comando para iniciar tu app Flask
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app"]
+CMD ["sh", "-c", "gunicorn app:app --bind 0.0.0.0:${PORT:-8080}"]
+
