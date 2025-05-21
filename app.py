@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, send_file, url_for
 import os
 from convertir_dmc2 import convert_image_to_dmc
 
-app = Flask(__name__, template_folder='../templates')
+app = Flask(__name__)
 
 #@app.route('/')
 #def home():
