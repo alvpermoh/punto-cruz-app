@@ -6,6 +6,7 @@ from PIL import Image
 #from convertir_dmc2 import convert_image_to_dmc
 from prueba_web_optimizada import convert_image_to_dmc
 
+
 def convertir_numpy_a_base64(img_np):
     img_pil = Image.fromarray(img_np)
     buffer = BytesIO()

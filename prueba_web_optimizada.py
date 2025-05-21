@@ -17,6 +17,16 @@ from io import BytesIO
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import gc
 
+import psutil
+import os
+import logging
+
+process = psutil.Process(os.getpid())
+
+def log_memory_usage(context=""):
+    mem = process.memory_info().rss / (1024 * 1024)  # MB
+    logging.info(f"[MEMORY] {context} - Uso RAM actual: {mem:.2f} MB")
+
 # Símbolos "guays" para cada clave
 simbolos = {
     '0': '■',  # cuadrado
@@ -383,6 +393,8 @@ def generate_pdf(output_path, grid, legend, cell_size, image_path, imagenes,leye
     c = canvas.Canvas(output_path, pagesize=A4)
     page_width, page_height = A4
     margin = 20
+    
+    log_memory_usage("Al inicio de pdf")
 
     # Primera página: Imagen convertida
     img = Image.open(image_path)
@@ -404,7 +416,7 @@ def generate_pdf(output_path, grid, legend, cell_size, image_path, imagenes,leye
     c.drawImage(image_path, x, y, width, height)
     img.close()
     c.showPage()
-
+    log_memory_usage("2 parte pdf")
     for img_array in imagenes:
         # Convertir array NumPy a imagen PIL
         img_pil = Image.fromarray(img_array.astype('uint8'))
@@ -448,7 +460,7 @@ def generate_pdf(output_path, grid, legend, cell_size, image_path, imagenes,leye
         gc.collect()
     
     # Tercera página: Leyenda vertical
-    
+    log_memory_usage("Antes de la tercera pdf")
     img_pil = Image.fromarray(leyenda_imagen.astype('uint8'))
         
     # Guardar en un buffer BytesIO en formato PNG
