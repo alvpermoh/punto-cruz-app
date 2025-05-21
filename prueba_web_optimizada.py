@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
 from io import BytesIO
-
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 # Símbolos "guays" para cada clave
 simbolos = {
@@ -184,9 +184,11 @@ def matriz_a_imagen(matriz, filename=None, offset_x=0, offset_y=0):
         plt.close(fig)
         
     
-    fig.canvas.draw()  # Renderiza la figura en el backend
-    img_array = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-    img_array = img_array.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    canvas = FigureCanvas(fig)
+    canvas.draw()
+    img = Image.frombuffer("RGBA", canvas.get_width_height(), canvas.buffer_rgba(), "raw", "RGBA", 0, 1)
+    img = img.convert("RGB")  # Si solo necesitas RGB
+    img_array = np.array(img)
     plt.close(fig)
     return img_array
 
@@ -232,14 +234,16 @@ def leyenda_a_imagen(legend, conteo_simbolos, filename=None):
 
     plt.tight_layout()
     
-    if filename:
-        plt.savefig(filename, dpi=300, bbox_inches='tight')
-        plt.close(fig)
-        return filename
+    #if filename:
+    #    plt.savefig(filename, dpi=300, bbox_inches='tight')
+    #    plt.close(fig)
+    #    return filename
 
-    fig.canvas.draw()  # Renderiza la figura en el backend
-    img_array = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-    img_array = img_array.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    canvas = FigureCanvas(fig)
+    canvas.draw()
+    img = Image.frombuffer("RGBA", canvas.get_width_height(), canvas.buffer_rgba(), "raw", "RGBA", 0, 1)
+    img = img.convert("RGB")  # Si solo necesitas RGB
+    img_array = np.array(img)
     plt.close(fig)
     return img_array
 
@@ -367,7 +371,7 @@ def convert_image_to_dmc(image_path, output_path, palette_name, max_side_length)
 
     cell_size = 10  # o el tamaño que quieras
     grid = [list(legend.values())]  # Ejemplo simple, una fila con los símbolos usados
-
+    
     # Generar PDF
     generate_pdf(output_path, grid, legend, cell_size, converted_image_path,symbol_images,leyenda_imagen)
     print("Hecho 3")
@@ -438,7 +442,8 @@ def generate_pdf(output_path, grid, legend, cell_size, image_path, imagenes,leye
 
     
     # Tercera página: Leyenda vertical
-    img_pil = Image.fromarray(img_array.astype('uint8'))
+    print(leyenda_imagen)
+    img_pil = Image.fromarray(leyenda_imagen.astype('uint8'))
         
     # Guardar en un buffer BytesIO en formato PNG
     img_buffer = BytesIO()
