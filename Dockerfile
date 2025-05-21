@@ -1,9 +1,13 @@
 FROM python:3.12-slim
 
-# Instala dependencias del sistema (incluyendo libGL)
+
+
+
 RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
     libglib2.0-0 \
+    fonts-dejavu-core \
+    fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
 # Crea carpeta para la app
