@@ -4,3 +4,5 @@ numpy
 reportlab
 matplotlib
 pillow
+gunicorn
+
