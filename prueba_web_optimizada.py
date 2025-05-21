@@ -442,7 +442,7 @@ def generate_pdf(output_path, grid, legend, cell_size, image_path, imagenes,leye
 
     
     # Tercera página: Leyenda vertical
-    print(leyenda_imagen)
+    
     img_pil = Image.fromarray(leyenda_imagen.astype('uint8'))
         
     # Guardar en un buffer BytesIO en formato PNG
