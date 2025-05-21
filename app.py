@@ -5,9 +5,9 @@ from convertir_dmc2 import convert_image_to_dmc
 
 app = Flask(__name__)
 
-@app.route('/')
-def home():
-    return "Hola desde Gunicorn"
+#@app.route('/')
+#def home():
+#    return "Hola desde Gunicorn"
 
 UPLOAD_FOLDER = 'static/resultados'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
