@@ -12,6 +12,8 @@ def home():
 UPLOAD_FOLDER = 'static/resultados'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -39,5 +41,4 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     app.run(debug=True)
