@@ -15,6 +15,7 @@ import matplotlib
 matplotlib.use('Agg')
 from io import BytesIO
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+import gc
 
 # Símbolos "guays" para cada clave
 simbolos = {
@@ -401,7 +402,7 @@ def generate_pdf(output_path, grid, legend, cell_size, image_path, imagenes,leye
     x = (page_width - width) / 2
     y = (page_height - height) / 2
     c.drawImage(image_path, x, y, width, height)
-
+    img.close()
     c.showPage()
 
     for img_array in imagenes:
@@ -440,6 +441,11 @@ def generate_pdf(output_path, grid, legend, cell_size, image_path, imagenes,leye
         
         c.showPage()
 
+        img_pil.close()
+        img_buffer.close()
+        del img_pil, img_buffer, img_reader
+
+        gc.collect()
     
     # Tercera página: Leyenda vertical
     
