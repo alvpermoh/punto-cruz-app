@@ -5,4 +5,5 @@ reportlab
 matplotlib
 pillow
 gunicorn
+io
 
