@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, send_file, url_for
 import os
 from convertir_dmc2 import convert_image_to_dmc
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates')
 
 #@app.route('/')
 #def home():
@@ -37,6 +37,7 @@ def index():
                 imagen_url=url_for('static', filename=f'bloques/{nombre_resultado}')
             )
 
+    print("Buscando index.html en:", app.jinja_loader.searchpath)
 
     return render_template('index.html')
 
