@@ -52,7 +52,8 @@ simbolos = {
     'K': '♖',  # torre ajedrez
     'L': '♜',  # torre ajedrez negra
     'M': '♛',  # reina ajedrez
-    'N': '♚'   # rey ajedrez
+    'N': '♚',   # rey ajedrez
+    'O': '⚙',  # engranaje
 }
 
 colores = {
@@ -79,7 +80,8 @@ colores = {
     'K': '#696969',
     'L': '#8B4513',
     'M': '#7B68EE',
-    'N': '#4682B4'
+    'N': '#4682B4',
+    'O': '#4682B4'
 }
 
 DMC_RGB = {
@@ -104,7 +106,10 @@ DMC_RGB = {
     19: (247,201,95), 727: (255,241,175), 772: (228,236,212), 164: (200,216,184),
     988: (115,139,91), 471: (174,191,121), 520: (102,109,79), 501: (57, 111, 82),
     3840: (176,192,218), 3839: (123,142,171), 327: (99,54,102), 33: (156,89,158),
-    915: (130, 0, 67)
+    915: (130, 0, 67),
+
+    3371:(0,0,0)
+
 }
 
 
@@ -119,11 +124,11 @@ DMC_PALETTES = {
     },
     "pastel": {
         "codes": ["B5200", 23, 605, 967, 3770, 3823, 14, 747, 964, 800, 26, 1],
-        "colors": [DMC_RGB.get(c, (0,0,0)) for c in [23, 605, 967, 3770, 3823, 14, 747, 964, 800, 26, 1]]
+        "colors": [DMC_RGB.get(c, (0,0,0)) for c in ["B5200",23, 605, 967, 3770, 3823, 14, 747, 964, 800, 26, 1]]
     },
     "amazon1": {
-        "codes": ["B5200",23, 225, 3354, 3733, 3687, 304, 350, 20, 3825, 19, 727, 3823, 772, 164, 988, 471, 520, 501, 3840, 3839, 327, 33, 915],
-        "colors": [DMC_RGB.get(c, (0,0,0)) for c in [23, 225, 3354, 3733, 3687, 304, 350, 20, 3825, 19, 727, 3823, 772, 164, 988, 471, 520, 501, 3840, 3839, 327, 33, 915]]
+        "codes": ["B5200",23, 225, 3354, 3733, 3687, 304, 350, 20, 3825, 19, 727, 3823, 772, 164, 988, 471, 520, 501, 3840, 3839, 327, 33, 915,3371],
+        "colors": [DMC_RGB.get(c, (0,0,0)) for c in ["B5200",23, 225, 3354, 3733, 3687, 304, 350, 20, 3825, 19, 727, 3823, 772, 164, 988, 471, 520, 501, 3840, 3839, 327, 33, 915,3371]]
     }
     
 }
@@ -331,6 +336,9 @@ def convert_image_to_dmc(image_path, output_path, palette_name, max_side_length)
     dmc_codes = DMC_PALETTES[palette_name]["codes"]
     dmc_colors = DMC_PALETTES[palette_name]["colors"]
 
+    print("Códigos DMC:", dmc_codes)
+    print("Colores DMC:", dmc_colors)
+    
     img = resized_img
     if img is None:
         print(f"No se pudo leer la imagen: {image_path}")
@@ -353,7 +361,7 @@ def convert_image_to_dmc(image_path, output_path, palette_name, max_side_length)
             if dmc_codes[index] not in legend:
                 legend[dmc_codes[index]] = symbol
                 color_hex = rgb_to_hex(dmc_colors[index])
-                print(color_hex)
+                print(color_hex,index,dmc_codes[index],dmc_colors[index])
                 colores[symbol] = color_hex
 
             # Contar apariciones del símbolo
