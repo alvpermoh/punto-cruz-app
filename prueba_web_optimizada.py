@@ -23,6 +23,8 @@ import logging
 
 process = psutil.Process(os.getpid())
 
+logging.basicConfig(level=logging.INFO)
+
 def log_memory_usage(context=""):
     mem = process.memory_info().rss / (1024 * 1024)  # MB
     logging.info(f"[MEMORY] {context} - Uso RAM actual: {mem:.2f} MB")
@@ -127,8 +129,8 @@ DMC_PALETTES = {
         "colors": [DMC_RGB.get(c, (0,0,0)) for c in ["B5200",23, 605, 967, 3770, 3823, 14, 747, 964, 800, 26, 1]]
     },
     "amazon1": {
-        "codes": ["B5200",23, 225, 3354, 3733, 3687, 304, 350, 20, 3825, 19, 727, 3823, 772, 164, 988, 471, 520, 501, 3840, 3839, 327, 33, 915,3371],
-        "colors": [DMC_RGB.get(c, (0,0,0)) for c in ["B5200",23, 225, 3354, 3733, 3687, 304, 350, 20, 3825, 19, 727, 3823, 772, 164, 988, 471, 520, 501, 3840, 3839, 327, 33, 915,3371]]
+        "codes": ["B5200",23, 225, 3354, 3733, 3687, 304, 350, 20, 3825, 19, 727, 3823, 772, 164, 988, 471, 520, 501, 3840, 3839, 327, 33, 915],
+        "colors": [DMC_RGB.get(c, (0,0,0)) for c in ["B5200",23, 225, 3354, 3733, 3687, 304, 350, 20, 3825, 19, 727, 3823, 772, 164, 988, 471, 520, 501, 3840, 3839, 327, 33, 915]]
     }
     
 }
@@ -309,7 +311,7 @@ def divide_matrix(matrix, block_size=30):
     return blocks
 
 # Apply a function to each block and store the results in a vector
-def apply_function_to_blocks(matrix, func, block_size=30):
+def apply_function_to_blocks(matrix, func,c, block_size=30):
     blocks = divide_matrix(matrix, block_size)
     results = []
     print(len(blocks))
@@ -318,9 +320,9 @@ def apply_function_to_blocks(matrix, func, block_size=30):
         print(i,offset_x,offset_y)
         resultado= matriz_a_imagen(block, filename, offset_x=offset_x, offset_y=offset_y)
 
-        results.append(resultado) 
+        añadir_imagen_a_pdf(c, resultado)
 
-    return results
+    return 
 
 # Función de conversión actualizada para incluir el redimensionado
 def convert_image_to_dmc(image_path, output_path, palette_name, max_side_length):
@@ -336,8 +338,6 @@ def convert_image_to_dmc(image_path, output_path, palette_name, max_side_length)
     dmc_codes = DMC_PALETTES[palette_name]["codes"]
     dmc_colors = DMC_PALETTES[palette_name]["colors"]
 
-    print("Códigos DMC:", dmc_codes)
-    print("Colores DMC:", dmc_colors)
     
     img = resized_img
     if img is None:
@@ -361,7 +361,7 @@ def convert_image_to_dmc(image_path, output_path, palette_name, max_side_length)
             if dmc_codes[index] not in legend:
                 legend[dmc_codes[index]] = symbol
                 color_hex = rgb_to_hex(dmc_colors[index])
-                print(color_hex,index,dmc_codes[index],dmc_colors[index])
+               
                 colores[symbol] = color_hex
 
             # Contar apariciones del símbolo
@@ -376,35 +376,34 @@ def convert_image_to_dmc(image_path, output_path, palette_name, max_side_length)
     # Guardar imagen convertida
     converted_image_path = output_path.replace(".pdf", "_converted.jpg")
     #symbol_image_path = "simbolos.png"
+    
 
     cv2.imwrite(converted_image_path, cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
     print(len(output_img2), len(output_img2[0]))
-    symbol_images=apply_function_to_blocks(output_img2, matriz_a_imagen, block_size=50)
+
+    c=iniciar_pdf(output_path, converted_image_path)
+    apply_function_to_blocks(output_img2, matriz_a_imagen,c, block_size=50)
     print("Hecho 2")
-    #matriz_a_imagen(output_img2, "resultado.png")
+    
     img_final=matriz_a_imagen(output_img2, None)
 
     # Crear leyenda
     create_legend(legend, output_path)
     leyenda_imagen=leyenda_a_imagen(legend=legend,conteo_simbolos=conteo_simbolos, filename="leyenda.png")
 
-    cell_size = 10  # o el tamaño que quieras
-    grid = [list(legend.values())]  # Ejemplo simple, una fila con los símbolos usados
-    
-    # Generar PDF
-    generate_pdf(output_path, grid, legend, cell_size, converted_image_path,symbol_images,leyenda_imagen)
+    cerrar_pdf(c, leyenda_imagen)
+
     print("Hecho 3")
     return img_final
 
 
-def generate_pdf(output_path, grid, legend, cell_size, image_path, imagenes,leyenda_imagen):
+def iniciar_pdf(output_path, image_path):
     c = canvas.Canvas(output_path, pagesize=A4)
     page_width, page_height = A4
     margin = 20
-    
-    log_memory_usage("Al inicio de pdf")
 
-    # Primera página: Imagen convertida
+    log_memory_usage("Inicio PDF")
+
     img = Image.open(image_path)
     width, height = img.size
     max_width = page_width - 2 * margin
@@ -422,62 +421,22 @@ def generate_pdf(output_path, grid, legend, cell_size, image_path, imagenes,leye
     x = (page_width - width) / 2
     y = (page_height - height) / 2
     c.drawImage(image_path, x, y, width, height)
-    img.close()
     c.showPage()
-    log_memory_usage("2 parte pdf")
-    for img_array in imagenes:
-        # Convertir array NumPy a imagen PIL
-        img_pil = Image.fromarray(img_array.astype('uint8'))
-        
-        # Guardar en un buffer BytesIO en formato PNG
-        img_buffer = BytesIO()
-        img_pil.save(img_buffer, format='PNG')
-        img_buffer.seek(0)  # Volver al inicio del buffer
-        
-        # Crear ImageReader a partir del buffer
-        img_reader = ImageReader(img_buffer)
-        
-        width, height = img_pil.size
-        
-        max_width = page_width - 2 * margin
-        max_height = page_height - 2 * margin
-        aspect_ratio = width / height
-        
-        # Ajustar tamaño manteniendo la relación de aspecto
-        if width > max_width or height > max_height:
-            if width / max_width > height / max_height:
-                width = max_width
-                height = width / aspect_ratio
-            else:
-                height = max_height
-                width = height * aspect_ratio
-        
-        # Centrar la imagen
-        x = (page_width - width) / 2
-        y = (page_height - height) / 2
-        
-        # Dibujar la imagen en el canvas con ImageReader
-        c.drawImage(img_reader, x, y, width, height)
-        
-        c.showPage()
+    img.close()
 
-        img_pil.close()
-        img_buffer.close()
-        del img_pil, img_buffer, img_reader
+    log_memory_usage("Página inicial añadida")
+    return c
 
-        gc.collect()
-    
-    # Tercera página: Leyenda vertical
-    log_memory_usage("Antes de la tercera pdf")
-    img_pil = Image.fromarray(leyenda_imagen.astype('uint8'))
-        
-    # Guardar en un buffer BytesIO en formato PNG
+def añadir_imagen_a_pdf(c, img_array):
+    page_width, page_height = A4
+    margin = 20
+
+    img_pil = Image.fromarray(img_array.astype('uint8'))
     img_buffer = BytesIO()
     img_pil.save(img_buffer, format='PNG')
-    img_buffer.seek(0)  # Volver al inicio del buffer
-        
-    # Crear ImageReader a partir del buffer
+    img_buffer.seek(0)
     img_reader = ImageReader(img_buffer)
+
     width, height = img_pil.size
     max_width = page_width - 2 * margin
     max_height = page_height - 2 * margin
@@ -492,9 +451,54 @@ def generate_pdf(output_path, grid, legend, cell_size, image_path, imagenes,leye
             width = height * aspect_ratio
 
     x = (page_width - width) / 2
-    y = (page_height - height) / 2 
+    y = (page_height - height) / 2
+
+    c.drawImage(img_reader, x, y, width, height)
+    c.showPage()
+
+    img_pil.close()
+    img_buffer.close()
+    del img_pil, img_buffer, img_reader
+    gc.collect()
+
+    log_memory_usage("Imagen añadida al PDF")
+
+
+def cerrar_pdf(c, leyenda_imagen):
+    page_width, page_height = A4
+    margin = 20
+
+    img_pil = Image.fromarray(leyenda_imagen.astype('uint8'))
+    img_buffer = BytesIO()
+    img_pil.save(img_buffer, format='PNG')
+    img_buffer.seek(0)
+    img_reader = ImageReader(img_buffer)
+
+    width, height = img_pil.size
+    max_width = page_width - 2 * margin
+    max_height = page_height - 2 * margin
+    aspect_ratio = width / height
+
+    if width > max_width or height > max_height:
+        if width / max_width > height / max_height:
+            width = max_width
+            height = width / aspect_ratio
+        else:
+            height = max_height
+            width = height * aspect_ratio
+
+    x = (page_width - width) / 2
+    y = (page_height - height) / 2
+
     c.drawImage(img_reader, x, y, width, height)
     c.save()
+
+    img_pil.close()
+    img_buffer.close()
+    del img_pil, img_buffer, img_reader
+    gc.collect()
+
+    log_memory_usage("PDF cerrado con leyenda")
 
 
 
